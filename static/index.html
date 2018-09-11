@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Photomaton</title>
+<script type="text/javascript">
+	function loadJSON(callback) {
+		var xobj = new XMLHttpRequest();
+		xobj.overrideMimeType("application/json");
+		xobj.open('GET', '../pictures', true);
+		// Replace 'my_data' with the path to your file
+		xobj.onreadystatechange = function() {
+			if (xobj.readyState === 4 && xobj.status === 200) {
+				// Required use of an anonymous callback 
+				// as .open() will NOT return a value but simply returns undefined in asynchronous mode
+				callback(xobj.responseText);
+			}
+		};
+		xobj.send(null);
+	}
+
+	var curDate = new Date('1978-08-10T01:30:00');
+
+	function updatePicture(response) {
+		// Parse JSON string into object
+		var pictures = JSON.parse(response);
+
+		var newDate = new Date(pictures[0].date);
+		console.log("new date="+newDate);
+		console.log("cur date="+curDate);
+		
+		if (newDate > curDate) {
+			var pic = document.getElementById("picture");
+			pic.src = pictures[0].name;
+			console.log("new picture="+pictures[0].name);
+			console.log("new date="+newDate);
+			curDate = newDate;
+		}
+	}
+
+	function load() {
+		loadJSON(updatePicture);
+
+		// each 100 Ms check if a new picture has been taken
+		window.setInterval(function() {
+			loadJSON(updatePicture);
+		}, 1000);
+	}
+</script>
+
+</head>
+<body onload="load()">
+
+	<table>
+		<tr>
+			<td><a href=\?prev\>previous</a>
+			<td><a href=\?next\>next</a>
+			<td>
+		<tr>
+	</table>
+
+	<img id="picture" src="unknown" height="50%" width="50%"></img>
+</body>
+</html>
