@@ -2,7 +2,8 @@ from datetime import datetime
 from flask import Flask
 import os, glob
 from flask import jsonify
-from flask import redirect, url_for
+from flask import redirect, url_for, Response
+import json
 app= Flask(__name__)
 
 
@@ -17,3 +18,14 @@ def pictures():
     filesInfo = [{"name":filename[7:],"date":datetime.fromtimestamp(os.path.getmtime(filename)).isoformat()} for filename in files]
     
     return jsonify(filesInfo[::-1])
+
+
+@app.route("/pictures/take", methods=['PUT'])
+def takeApicture():
+    data = {
+        "response":"OK"
+    }
+    
+    js = json.dumps(data)
+    resp = Response(js, status=200, mimetype='application/json')
+    return resp

@@ -19,6 +19,23 @@
 		xobj.send(null);
 	}
 
+	function putJSON(callback) {
+		var xobj = new XMLHttpRequest();
+		xobj.overrideMimeType("application/json");
+		xobj.open('PUT', '../pictures/take', true);
+		// Replace 'my_data' with the path to your file
+		xobj.onreadystatechange = function() {
+			if (xobj.readyState === 4) {
+				// Required use of an anonymous callback 
+				// as .open() will NOT return a value but simply returns undefined in asynchronous mode
+				callback(xobj.status);
+			}
+		};
+		xobj.send(null);
+	}
+
+
+
 	var newestPictDate = new Date('1978-08-10T01:30:00');
 
 	function updatePicture(response) {
@@ -48,7 +65,17 @@
 		}, 1000);
 	}
 
-	
+
+ 	function takeAPicture()
+    {
+		putJSON(function(status){
+			if(status !== 200)
+			{
+			   alert("couldn't take a picture") ;	
+			}
+		});	
+	}
+ 
 	function indexInPictures(pictures, picName)
 	{
 		var curPictIdx =  -1 ;
@@ -114,16 +141,16 @@
 			}
 		});
 	}
-
 </script>
 
 </head>
-<body onload="load()">
+<body onload="javascript:load()">
 
 	<table>
 		<tr>
 			<td><a onclick="javavscript:prev()">previous</a>
 			<td><a onclick="javavscript:next()">next</a>
+			<td><a onclick="javavscript:takeAPicture()">shoot</a>
 			<td>
 		<tr>
 	</table>
