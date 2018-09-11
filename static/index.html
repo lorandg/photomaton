@@ -19,22 +19,23 @@
 		xobj.send(null);
 	}
 
-	var curDate = new Date('1978-08-10T01:30:00');
+	var newestPictDate = new Date('1978-08-10T01:30:00');
 
 	function updatePicture(response) {
 		// Parse JSON string into object
 		var pictures = JSON.parse(response);
 
-		var newDate = new Date(pictures[0].date);
-		console.log("new date="+newDate);
-		console.log("cur date="+curDate);
-		
-		if (newDate > curDate) {
-			var pic = document.getElementById("picture");
-			pic.src = pictures[0].name;
-			console.log("new picture="+pictures[0].name);
-			console.log("new date="+newDate);
-			curDate = newDate;
+		if(pictures.length > 0)
+		{
+			var newDate = new Date(pictures[0].date);
+			
+			if (newDate > newestPictDate) {
+				var pic = document.getElementById("picture");
+				pic.src = pictures[0].name;
+				console.log("new picture="+pictures[0].name);
+				console.log("new date="+newDate);
+				newestPictDate = newDate;
+			}
 		}
 	}
 
@@ -46,6 +47,74 @@
 			loadJSON(updatePicture);
 		}, 1000);
 	}
+
+	
+	function indexInPictures(pictures, picName)
+	{
+		var curPictIdx =  -1 ;
+		for (var i = 0; (i < pictures.length) && (curPictIdx===-1) ; i++) {
+			if(pictures[i].name.endsWith(picName))
+			{
+				curPictIdx=i ;					
+			}
+	    }
+		return curPictIdx;
+	}
+	
+	function getPictureName(pic)
+	{
+		return decodeURIComponent(pic.src.substring(pic.src.lastIndexOf("/") + 1, pic.src.length)) ;
+	}
+
+	function prev()
+	{
+		loadJSON(function(response){
+			var pictures = JSON.parse(response);
+			
+			if(pictures.length > 0)
+			{
+				var pic = document.getElementById("picture");
+				var picName =  getPictureName(pic) ;
+				var curPictIdx =  indexInPictures(pictures, picName) ;
+
+				var newIdx = pictures.length -1 ;
+				if(curPictIdx > 0)
+				{				
+					newIdx = curPictIdx -1 ;
+				}
+				console.log("newIdx="+newIdx) ;
+				pic.src = pictures[newIdx].name;
+			}
+		});
+	}
+
+
+	
+	function next()
+	{
+		loadJSON(function(response){
+			var pictures = JSON.parse(response);
+
+			if(pictures.length > 0)
+			{
+				var pic = document.getElementById("picture");
+				var picName =  getPictureName(pic) ;
+				var curPictIdx =  indexInPictures(pictures, picName) ;
+	
+				var newIdx = 0 ;
+				if(curPictIdx >= 0)
+				{				
+					if( (curPictIdx +1) < pictures.length)
+					{
+						newIdx = curPictIdx +1 ;
+					}
+				}
+				console.log("newIdx="+newIdx) ;
+				pic.src = pictures[newIdx].name;
+			}
+		});
+	}
+
 </script>
 
 </head>
@@ -53,8 +122,8 @@
 
 	<table>
 		<tr>
-			<td><a href=\?prev\>previous</a>
-			<td><a href=\?next\>next</a>
+			<td><a onclick="javavscript:prev()">previous</a>
+			<td><a onclick="javavscript:next()">next</a>
 			<td>
 		<tr>
 	</table>
