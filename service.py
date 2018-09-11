@@ -4,6 +4,8 @@ import os, glob
 from flask import jsonify
 from flask import redirect, url_for, Response
 import json
+from subprocess import call
+
 app= Flask(__name__)
 
 
@@ -22,6 +24,9 @@ def pictures():
 
 @app.route("/pictures/take", methods=['PUT'])
 def takeApicture():
+    
+    call(["gphoto2", "--capture-image-and-download"])
+    
     data = {
         "response":"OK"
     }
