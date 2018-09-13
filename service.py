@@ -5,7 +5,9 @@ from flask import jsonify
 from flask import redirect, url_for, Response
 import json
 from subprocess import call
-import gphoto2 as gphoto
+import gphoto2 as gp
+import logging
+
 
 app= Flask(__name__)
 
@@ -25,20 +27,24 @@ def pictures():
 
 @app.route("/pictures/take", methods=['PUT'])
 def takeApicture():
-    
-    #call(["gphoto2", "--capture-image-and-download"])
-    camera = gphoto.check_result(gphoto.gp_camera_new())
-    gphoto.check_result(gphoto.gp_camera_init(camera))
+    logging.basicConfig(format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
+    gp.check_result(gp.use_python_logging())
+    camera = gp.check_result(gp.gp_camera_new())
+    gp.check_result(gp.gp_camera_init(camera))
     print('Capturing image')
-    file_path = gphoto.check_result(gphoto.gp_camera_capture(
-        camera, gphoto.GP_CAPTURE_IMAGE))
+    file_path = gp.check_result(gp.gp_camera_capture(
+        camera, gp.GP_CAPTURE_IMAGE))
     print('Camera file path: {0}/{1}'.format(file_path.folder, file_path.name))
+    curFilePath = os.path.dirname(os.path.realpath(__file__))
+    imgName="Photomat_"+datetime.now().isoformat()+".jpg"
+    target = os.path.join(curFilePath, 'static/img', imgName)
     print('Copying image to', target)
-    camera_file = gphoto.check_result(gphoto.gp_camera_file_get(
-            camera, file_path.folder, file_path.name, gphoto.GP_FILE_TYPE_NORMAL))
-    gphoto.check_result(gphoto.gp_file_save(camera_file, "static/img"))
-    gphoto.check_result(gphoto.gp_camera_exit(camera))
-  
+    camera_file = gp.check_result(gp.gp_camera_file_get(
+        camera, file_path.folder, file_path.name, gp.GP_FILE_TYPE_NORMAL))
+    gp.check_result(gp.gp_file_save(camera_file, target))
+    gp.check_result(gp.gp_camera_exit(camera))
+
+ 
     data = {
         "response":"OK"
     }
