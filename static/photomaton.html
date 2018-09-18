@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Photomaton</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<script type="text/javascript">
+	function loadJSON(callback) {
+		var xobj = new XMLHttpRequest();
+		xobj.overrideMimeType("application/json");
+		xobj.open('GET', '../pictures', true);
+		// Replace 'my_data' with the path to your file
+		xobj.onreadystatechange = function() {
+			if (xobj.readyState === 4 && xobj.status === 200) {
+				// Required use of an anonymous callback 
+				// as .open() will NOT return a value but simply returns undefined in asynchronous mode
+				callback(xobj.responseText);
+			}
+		};
+		xobj.send(null);
+	}
+
+	function putJSON(callback) {
+		var xobj = new XMLHttpRequest();
+		xobj.overrideMimeType("application/json");
+		xobj.open('PUT', '../pictures/take', true);
+		// Replace 'my_data' with the path to your file
+		xobj.onreadystatechange = function() {
+			if (xobj.readyState === 4) {
+				// Required use of an anonymous callback 
+				// as .open() will NOT return a value but simply returns undefined in asynchronous mode
+				callback(xobj.status);
+			}
+		};
+		xobj.send(null);
+	}
+
+
+
+	var newestPictDate = new Date('1978-08-10T01:30:00');
+
+	function updatePicture(response) {
+		// Parse JSON string into object
+		var pictures = JSON.parse(response);
+
+		if(pictures.length > 0)
+		{
+			var newDate = new Date(pictures[0].date);
+			
+			if (newDate > newestPictDate) {
+				var pic = document.getElementById("picture");
+				pic.src = pictures[0].name;
+				console.log("new picture="+pictures[0].name);
+				console.log("new date="+newDate);
+				newestPictDate = newDate;
+			}
+		}
+	}
+
+	function load() {
+		loadJSON(updatePicture);
+
+		// each 100 Ms check if a new picture has been taken
+		window.setInterval(function() {
+			loadJSON(updatePicture);
+		}, 1000);
+	}
+
+
+	
+	function sleep(secs) {
+	  secs = (+new Date) + secs * 1000;
+	  while ((+new Date) < secs);
+	}
+
+	var count = 10 ;
+	var oldContent = "" ;
+    function countDown()
+	{
+        var take = document.getElementById("take");
+	    take.innerHTML = count.toString() ;
+		sleep(1);
+		
+		count--
+		if(count>=0)
+		{
+			setTimeout(countDown,1000);
+		}
+		else
+		{
+			takeAPicture() ;
+			take.innerHTML=oldContent;
+		}
+	}
+
+ 	function delayedTakeAPicture()
+    {
+        var take = document.getElementById("take");
+	    oldContent = take.innerHTML ;		
+		count=10 ;
+		countDown();
+	}
+	
+ 	function takeAPicture()
+    {
+
+		putJSON(function(status){
+			if(status !== 200)
+			{
+			   alert("couldn't take a picture") ;	
+			}
+		});	
+	}
+ 
+	function indexInPictures(pictures, picName)
+	{
+		var curPictIdx =  -1 ;
+		for (var i = 0; (i < pictures.length) && (curPictIdx===-1) ; i++) {
+			if(pictures[i].name.endsWith(picName))
+			{
+				curPictIdx=i ;					
+			}
+	    }
+		return curPictIdx;
+	}
+	
+	function getPictureName(pic)
+	{
+		return decodeURIComponent(pic.src.substring(pic.src.lastIndexOf("/") + 1, pic.src.length)) ;
+	}
+
+	function prev()
+	{
+		loadJSON(function(response){
+			var pictures = JSON.parse(response);
+			
+			if(pictures.length > 0)
+			{
+				var pic = document.getElementById("picture");
+				var picName =  getPictureName(pic) ;
+				var curPictIdx =  indexInPictures(pictures, picName) ;
+
+				var newIdx = pictures.length -1 ;
+				if(curPictIdx > 0)
+				{				
+					newIdx = curPictIdx -1 ;
+				}
+				console.log("newIdx="+newIdx) ;
+				pic.src = pictures[newIdx].name;
+			}
+		});
+	}
+
+
+	
+	function next()
+	{
+		loadJSON(function(response){
+			var pictures = JSON.parse(response);
+
+			if(pictures.length > 0)
+			{
+				var pic = document.getElementById("picture");
+				var picName =  getPictureName(pic) ;
+				var curPictIdx =  indexInPictures(pictures, picName) ;
+	
+				var newIdx = 0 ;
+				if(curPictIdx >= 0)
+				{				
+					if( (curPictIdx +1) < pictures.length)
+					{
+						newIdx = curPictIdx +1 ;
+					}
+				}
+				console.log("newIdx="+newIdx) ;
+				pic.src = pictures[newIdx].name;
+			}
+		});
+	}
+</script>
+
+</head>
+<body onload="javascript:load()">
+
+	<table>
+		<tr>
+			<td><a onclick="javavscript:prev()"><img src="prev.jpg" width="50" height="50"/></a></td>
+			<td><a onclick="javavscript:next()"><img src="next.jpg" width="50" height="50"/></a></td>
+			<td><a onclick="javavscript:delayedTakeAPicture()" id="take"><img  src="favicon.png" width="50" height="50"/></a></td>
+		<tr>
+	</table>
+
+	<img id="picture" src="favicon.png" heigh="711", width="400"></img>
+</body>
+</html>

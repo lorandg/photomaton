@@ -2,11 +2,12 @@ from datetime import datetime
 from flask import Flask
 import os, glob
 from flask import jsonify
-from flask import redirect, url_for, Response
+from flask import redirect, url_for, Response, request
 import json
 from subprocess import call
 import gphoto2 as gp
 import logging
+import time
 
 
 app= Flask(__name__)
@@ -16,7 +17,7 @@ app= Flask(__name__)
 def index():
     return redirect(url_for('static', filename='index.html'))
 
-@app.route("/pictures")
+@app.route("/pictures", methods = ['GET'])
 def pictures():
     files = list(filter(os.path.isfile, glob.glob("static/img/*.jpg")))
     files.sort(key=lambda picture: os.path.getmtime(picture))
@@ -44,7 +45,6 @@ def takeApicture():
     gp.check_result(gp.gp_file_save(camera_file, target))
     gp.check_result(gp.gp_camera_exit(camera))
 
- 
     data = {
         "response":"OK"
     }
@@ -52,3 +52,11 @@ def takeApicture():
     js = json.dumps(data)
     resp = Response(js, status=200, mimetype='application/json')
     return resp
+
+@app.route('/pictures', methods = ['POST'])
+def receiveImg():
+    image = request.files['image']  # get the image
+    file = ('%s.jpeg' % time.strftime("%Y%m%d-%H%M%S"))
+    image.save('%s/%s' % ("static/img/", file))
+    
+    return Response("%s saved" % file)

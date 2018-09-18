@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Photomaton</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<script type="text/javascript">
+
+	var newestPictDate = new Date('1978-08-10T01:30:00');
+
+	function loadJSON(callback) {
+		var xobj = new XMLHttpRequest();
+		xobj.overrideMimeType("application/json");
+		xobj.open('GET', '../pictures', true);
+		// Replace 'my_data' with the path to your file
+		xobj.onreadystatechange = function() {
+			if (xobj.readyState === 4 && xobj.status === 200) {
+				// Required use of an anonymous callback 
+				// as .open() will NOT return a value but simply returns undefined in asynchronous mode
+				callback(xobj.responseText);
+			}
+		};
+		xobj.send(null);
+	}
+
+	function updatePicture(response) {
+		// Parse JSON string into object
+		var pictures = JSON.parse(response);
+
+		if(pictures.length > 0)
+		{
+			var newDate = new Date(pictures[0].date);
+			
+			if (newDate > newestPictDate) {
+				var pic = document.getElementById("picture");
+				pic.src = pictures[0].name;
+				console.log("new picture="+pictures[0].name);
+				console.log("new date="+newDate);
+				newestPictDate = newDate;
+			}
+		}
+	}
+
+	function load() {
+		loadJSON(updatePicture);
+
+		// each 100 Ms check if a new picture has been taken
+		window.setInterval(function() {
+			loadJSON(updatePicture);
+		}, 1000);
+	}
+
+	
+ 
+	function indexInPictures(pictures, picName)
+	{
+		var curPictIdx =  -1 ;
+		for (var i = 0; (i < pictures.length) && (curPictIdx===-1) ; i++) {
+			if(pictures[i].name.endsWith(picName))
+			{
+				curPictIdx=i ;					
+			}
+	    }
+		return curPictIdx;
+	}
+	
+	function getPictureName(pic)
+	{
+		return decodeURIComponent(pic.src.substring(pic.src.lastIndexOf("/") + 1, pic.src.length)) ;
+	}
+
+</script>
+
+</head>
+<body onload="javascript:load()">
+	<img id="picture" src="favicon.png" heigh="711", width="400"></img>
+</body>
+</html>
