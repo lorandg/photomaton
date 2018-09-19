@@ -64,12 +64,27 @@
 	}
 
 	var pictures ;
+	var nbPages = 1 ;
+	var nbPictByPage = 6 ;
+	var curPage = 1 ;
+	
+	function updatePage()
+	{
+		var pageDisp = document.getElementById("pageDisp");
+		pageDisp.innerText=curPage.toString()+"/"+nbPages.toString() ;
+	}
 	
 	function updatePicture(response) {
 		// Parse JSON string into object
 		pictures = JSON.parse(response);
-
-
+        nbPages = Math.floor(pictures.length/nbPictByPage) + ((pictures.length%6==0)? 0: 1) ;
+        
+		if(nbPages == 0)
+		{
+			nbPages = 1 ;
+		}
+		
+		updatePage() ;
 		displayPicture(0) ;
 	}
 
@@ -117,24 +132,28 @@
 
 	function prev()
 	{
-		var pic = document.getElementById("picture1");
-		var picName =  getPictureName(pic) ;
-		var curPictIdx =  indexInPictures(pictures, picName) ;
-		var idx = (curPictIdx-6>=0)? curPictIdx-6 : pictures.length%6*6 ;
-		console.log("prev"+idx);
+		curPage = curPage-1 ;
+		if(curPage<1)
+		{
+			curPage=nbPages ;
+		}	
+		var idx = (curPage-1)*6 ;
 		displayPicture(idx) ;	
+		updatePage() ;
 	}
 
 
 	
 	function next()
 	{
-		var pic = document.getElementById("picture1");
-		var picName =  getPictureName(pic) ;
-		var curPictIdx =  indexInPictures(pictures, picName) ;
-		var idx = (curPictIdx+6<pictures.length)? curPictIdx+6 : 0 ;
-		console.log("next"+idx);
+		curPage = curPage+1 ;
+		if(curPage>nbPages)
+		{
+			curPage=1 ;
+		}	
+		var idx = (curPage-1)*6 ;
 		displayPicture(idx) ;	
+		updatePage() ;
 	}
 
 	function on(idx) {
@@ -173,5 +192,6 @@
 			<td><a onclick="on(6)"><img id="picture6" src="favicon.png" heigh="100", width="100"></img></a></td>
 		<tr>
 	</table>
+	<p id="pageDisp"> </p>
 </body>
 </html>
